@@ -298,7 +298,10 @@ function bindEvents() {
   $('#clearFiltersBtn').addEventListener('click', clearFilters);
   $('#emptyClearBtn').addEventListener('click', clearFilters);
   $('#loadMoreBtn').addEventListener('click', () => { state.visibleCount += PAGE_SIZE; renderBrowse(); });
-  $('#flashCard').addEventListener('click', () => { if (Date.now() > swipeIgnoreUntil) flipCard(); });
+  $('#flashCard').addEventListener('click', event => {
+    if (event.target.closest('[data-speak], [data-favorite]')) return;
+    if (Date.now() > swipeIgnoreUntil) flipCard();
+  });
   $('#flashCard').addEventListener('keydown', e => { if (e.target === $('#flashCard') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); flipCard(); } });
   $('#flipCardBtn').addEventListener('click', flipCard);
   $('#prevCardBtn').addEventListener('click', () => navigateFlash(-1));
