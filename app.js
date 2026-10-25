@@ -1,22 +1,41 @@
 const DATA_BASE = './data/';
 const DONATION_DELAY = 4 * 60 * 1000;
 const STORAGE_FAVORITES = 'sanadala-hsk-favorites-v1';
+const STORAGE_EDITION = 'sanadala-hsk-edition-v1';
+const STORAGE_PROGRESS = 'sanadala-hsk-progress-v1';
+const STORAGE_RECENT = 'sanadala-hsk-recent-v1';
 const STORAGE_DONATION = 'sanadala-donation-seen-v1';
 const PAGE_SIZE = 32;
 const validViews = new Set(['home', 'flash', 'browse', 'filter']);
+const statuses = {planned:'Sẽ học',learning:'Đang học',learned:'Đã học'};
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+function readObject(key) {
+  try {
+    const obj = JSON.parse(localStorage.getItem(key) || '{}');
+    return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj : {};
+  } catch { return {}; }
+}
+function savedEdition() {
+  try { return localStorage.getItem(STORAGE_EDITION) === '2' ? '2' : '3'; }
+  catch { return '3'; }
+}
 const state = {
+  edition: savedEdition(),
   view: 'home', catalog: [], words: [], filtered: [], levels: new Set(),
-  favorites: readFavorites(), query: '', onlyFavorites: false,
+  favorites: readFavorites(), progress: readObject(STORAGE_PROGRESS), recent: readObject(STORAGE_RECENT),
+  query: '', onlyFavorites: false, statusFilter: 'all',
   sort: 'original', seed: Math.random() * 100000 | 0,
   flashIndex: 0, flipped: false, visibleCount: PAGE_SIZE,
   loaded: false, loadingPromise: null, donationTimer: null, donationPreviousFocus: null,
 };
 
 function readFavorites() {
-  try { return new Set(JSON.parse(localStorage.getItem(STORAGE_FAVORITES) || '[]')); }
+  try {
+    const old = JSON.parse(localStorage.getItem(STORAGE_FAVORITES) || '[]');
+    return new Set(Array.isArray(old) ? old.map(id => String(id).includes(':') ? String(id) : '3:' + id) : []);
+  }
   catch { return new Set(); }
 }
 function saveFavorites() {
@@ -30,15 +49,32 @@ function normalize(value) {
   return String(value ?? '').toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
 }
 function numberFormat(value) { return new Intl.NumberFormat('vi-VN').format(value); }
+function statusFor(id) { return statuses[state.progress[id]] ? state.progress[id] : 'planned'; }
+function recentForEdition() { return state.recent[state.edition]; }
+function saveLocalObject(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); }
+  catch { showToast('Không thể lưu tiến độ trong trình duyệt này.'); }
+}
+function rememberWord(id) {
+  if (!id || state.recent[state.edition] === id) return;
+  state.recent[state.edition] = id;
+  saveLocalObject(STORAGE_RECENT, state.recent);
+  updateResumeButton();
+}
+function updateResumeButton() {
+  $('#resumeBtn').hidden = !recentForEdition();
+}
 function viewFromHash() {
   const raw = window.location.hash.replace(/^#/, '');
   return validViews.has(raw) ? raw : 'home';
 }
 
 async function loadCatalog() {
-  const response = await fetch(DATA_BASE + 'catalog.json');
+  const edition = state.edition;
+  const response = await fetch(DATA_BASE + (edition === '2' ? 'catalog2.json' : 'catalog.json'));
   if (!response.ok) throw new Error('Không đọc được danh mục từ vựng.');
   const data = await response.json();
+  if (edition !== state.edition) return;
   state.catalog = data.levels;
   state.levels = new Set(data.levels.map(item => item.level));
   $('#totalWordsHome').textContent = numberFormat(data.total);
@@ -47,24 +83,67 @@ async function loadCatalog() {
 async function loadWords() {
   if (state.loaded) return;
   if (state.loadingPromise) return state.loadingPromise;
-  state.loadingPromise = (async () => {
-    const responses = await Promise.all(state.catalog.map(async item => {
-      const response = await fetch(DATA_BASE + item.file);
-      if (!response.ok) throw new Error('Không tải được dữ liệu HSK ' + item.level);
-      const rows = await response.json();
-      return rows.map(row => ({
-        id: item.level + '-' + row[0], level: item.level, number: row[0],
+  const edition = state.edition;
+  const catalog = [...state.catalog];
+  const promise = (async () => {
+    const responses = await Promise.all(catalog.map(async item => {
+      const filenames = item.files || [item.file];
+      const chunks = await Promise.all(filenames.map(async file => {
+        const response = await fetch(DATA_BASE + file);
+        if (!response.ok) throw new Error('Không tải được dữ liệu HSK ' + item.level);
+        return response.json();
+      }));
+      const rows = chunks.flat();
+      return rows.map(row => edition === '2' ? ({
+        id: `2:${item.level}-${row[0]}`, level: item.level, number: row[0],
+        word: row[1], pinyin: row[2], meaning: row[3], example: row[4],
+        examplePinyin: row[5], exampleVi: row[6], definition: row[7],
+        english: row[8], official: row[9], officialPinyin: row[10], sino: '', note: '',
+      }) : ({
+        id: `3:${item.level}-${row[0]}`, level: item.level, number: row[0],
         word: row[1], sino: row[2], pinyin: row[3], meaning: row[4],
         example: row[5], traditional: row[6], examplePinyin: row[7],
         exampleSino: row[8], exampleVi: row[9], note: row[10] || '',
       }));
     }));
+    if (edition !== state.edition) return;
     state.words = responses.flat();
     state.loaded = true;
     applyFilters();
   })();
-  try { await state.loadingPromise; }
-  finally { state.loadingPromise = null; }
+  state.loadingPromise = promise;
+  try { await promise; }
+  finally { if (state.loadingPromise === promise) state.loadingPromise = null; }
+}
+
+function updateEditionUI() {
+  const edition = state.edition;
+  $('#heroEditionLabel').textContent = 'HSK ' + edition + '.0';
+  $('#studyEditionLabel').textContent = 'HSK ' + edition + '.0 · TỪ VỰNG';
+  $$('[data-edition]').forEach(button => {
+    const active = button.dataset.edition === edition;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  updateResumeButton();
+}
+async function setEdition(edition) {
+  if (!['2', '3'].includes(edition) || edition === state.edition) return;
+  state.edition = edition;
+  try { localStorage.setItem(STORAGE_EDITION, edition); } catch {}
+  state.catalog = []; state.words = []; state.filtered = []; state.levels = new Set();
+  state.loaded = false; state.loadingPromise = null;
+  state.query = ''; state.onlyFavorites = false; state.statusFilter = 'all';
+  $('#searchInput').value = '';
+  $('#statusFilter').value = 'all';
+  $('#loadingState').textContent = 'Đang chuẩn bị học liệu…';
+  $('#loadingState').hidden = state.view === 'home';
+  $('#flashPanel').hidden = true; $('#browsePanel').hidden = true;
+  updateEditionUI();
+  try {
+    await loadCatalog();
+    if (state.view !== 'home') setView(state.view, false);
+  } catch { showToast('Không tải được phiên bản HSK. Vui lòng thử lại.'); }
 }
 
 function setView(view, updateHash = true) {
@@ -112,8 +191,10 @@ function applyFilters() {
   state.filtered = state.words.filter(item => {
     if (!state.levels.has(item.level)) return false;
     if (state.onlyFavorites && !state.favorites.has(item.id)) return false;
+    if (state.statusFilter !== 'all' && statusFor(item.id) !== state.statusFilter) return false;
     if (!q) return true;
-    return [item.word, item.pinyin, item.meaning, item.sino, item.example, item.examplePinyin, item.exampleVi, item.note]
+    return [item.word, item.official, item.pinyin, item.meaning, item.sino, item.english, item.definition,
+      item.example, item.examplePinyin, item.exampleVi, item.note]
       .some(value => normalize(value).includes(q));
   });
   if (state.sort === 'alpha') state.filtered.sort((a,b) => a.word.localeCompare(b.word, 'zh'));
@@ -124,6 +205,7 @@ function applyFilters() {
   $('#favoritesOnlyBtn').classList.toggle('active', state.onlyFavorites);
   $('#favoritesOnlyBtn').setAttribute('aria-pressed', String(state.onlyFavorites));
   $('#sortSelect').value = state.sort;
+  $('#statusFilter').value = state.statusFilter;
   renderLevelChips();
 }
 function shuffledKey(id) {
@@ -134,7 +216,7 @@ function shuffledKey(id) {
 function refreshFilters() { applyFilters(); renderCurrentView(); }
 function clearFilters() {
   state.levels = new Set(state.catalog.map(item => item.level));
-  state.query = ''; state.onlyFavorites = false; state.sort = 'original';
+  state.query = ''; state.onlyFavorites = false; state.statusFilter = 'all'; state.sort = 'original';
   $('#searchInput').value = '';
   refreshFilters();
 }
@@ -143,6 +225,9 @@ function renderCurrentView() {
   if (state.view === 'home' || !state.loaded) return;
   $('#loadingState').hidden = true;
   const count = state.filtered.length;
+  const counts = {planned: 0, learning: 0, learned: 0};
+  state.words.forEach(item => counts[statusFor(item.id)]++);
+  $('#progressSummary').textContent = `Sẽ học ${numberFormat(counts.planned)} · Đang học ${numberFormat(counts.learning)} · Đã học ${numberFormat(counts.learned)} (lưu trên thiết bị)`;
   $('#studyCounter').textContent = numberFormat(count) + ' từ';
   $('#emptyState').hidden = count !== 0;
   $('#flashPanel').hidden = state.view !== 'flash' || !count;
@@ -160,9 +245,26 @@ function favoriteButton(item, flash = false) {
   const saved = state.favorites.has(item.id);
   return `<button type="button" class="${flash ? 'flash-save' : 'favorite-btn'} ${saved ? 'is-saved saved' : ''}" data-favorite="${item.id}" aria-label="${saved ? 'Bỏ lưu' : 'Lưu'} từ ${escapeHtml(item.word)}" aria-pressed="${saved}" title="${saved ? 'Bỏ lưu từ' : 'Lưu từ'}">${saved ? '♥' : '♡'}</button>`;
 }
+function statusSelect(item) {
+  const selected = statusFor(item.id);
+  return `<label class="status-field"><span>Tiến độ</span><select data-status="${escapeHtml(item.id)}" aria-label="Tiến độ học từ ${escapeHtml(item.word)}">
+    ${Object.entries(statuses).map(([key,label]) => `<option value="${key}" ${key === selected ? 'selected' : ''}>${label}</option>`).join('')}
+  </select></label>`;
+}
+function setWordStatus(id, value) {
+  if (!statuses[value]) return;
+  if (value === 'planned') delete state.progress[id];
+  else state.progress[id] = value;
+  saveLocalObject(STORAGE_PROGRESS, state.progress);
+  if (state.statusFilter !== 'all') refreshFilters();
+  else if (state.view === 'flash') renderFlash();
+  else renderBrowse();
+  showToast('Đã lưu: ' + statuses[value]);
+}
 function renderFlash() {
   const item = state.filtered[state.flashIndex];
   if (!item) return;
+  rememberWord(item.id);
   $('#flashPosition').textContent = `${numberFormat(state.flashIndex + 1)} / ${numberFormat(state.filtered.length)} · HSK ${item.level}`;
   $('#flashFront').innerHTML = `
     <span class="flash-label">HSK ${item.level} · TỪ SỐ ${item.number}</span>
@@ -172,13 +274,15 @@ function renderFlash() {
   $('#flashBack').innerHTML = `
     <span class="flash-label">NGHĨA TIẾNG VIỆT</span>
     <div class="flash-meaning">${escapeHtml(item.meaning)}</div>
-    <div class="flash-hanviet">Hán Việt: ${escapeHtml(item.sino)}</div>
+    ${item.sino ? `<div class="flash-hanviet">Hán Việt: ${escapeHtml(item.sino)}</div>` : ''}
+    ${item.definition ? `<div class="flash-definition">Giải thích: ${escapeHtml(item.definition)}</div>` : ''}
     <div class="flash-example">
       <div class="example-header">VÍ DỤ</div>
       <div class="flash-example-cn">${escapeHtml(item.example)} ${speakButton(item.example, 'câu ví dụ')}</div>
       <div class="flash-example-pinyin">${escapeHtml(item.examplePinyin)}</div>
       <div class="flash-example-vi">${escapeHtml(item.exampleVi)}</div>
     </div>`;
+  $('#flashStatus').innerHTML = statusSelect(item);
   $('#flashCard').querySelectorAll('.flash-save').forEach(el => el.remove());
   $('#flashCard').insertAdjacentHTML('beforeend', favoriteButton(item, true));
   $('#flashCard').classList.toggle('is-flipped', state.flipped);
@@ -202,13 +306,16 @@ function renderWordCard(item) {
     <div class="word-main"><h3>${escapeHtml(item.word)}</h3>${speakButton(item.word, item.word)}</div>
     <div class="word-pinyin">${escapeHtml(item.pinyin)}</div>
     <div class="word-meaning">${escapeHtml(item.meaning)}</div>
-    <div class="word-sino">Hán Việt: ${escapeHtml(item.sino)}</div>
+    ${item.sino ? `<div class="word-sino">Hán Việt: ${escapeHtml(item.sino)}</div>` : ''}
+    ${item.english ? `<div class="word-english">Tiếng Anh: ${escapeHtml(item.english)}</div>` : ''}
+    ${item.definition ? `<div class="word-definition">Giải thích: ${escapeHtml(item.definition)}</div>` : ''}
     <div class="example-box"><span class="example-header">VÍ DỤ</span>
       <div class="example-chinese">${escapeHtml(item.example)} ${speakButton(item.example, 'câu ví dụ')}</div>
       <div class="example-pinyin">${escapeHtml(item.examplePinyin)}</div>
       <div class="example-vi">${escapeHtml(item.exampleVi)}</div>
       ${item.note ? `<div class="word-note">Ghi chú: ${escapeHtml(item.note)}</div>` : ''}
     </div>
+    <div class="word-status">${statusSelect(item)}</div>
   </article>`;
 }
 function renderBrowse() {
@@ -275,12 +382,29 @@ function closeDonation() {
   if (state.donationPreviousFocus?.focus) state.donationPreviousFocus.focus();
 }
 
+async function resumeLast() {
+  const remembered = recentForEdition();
+  if (!remembered) { setView('flash'); return; }
+  if (!state.loaded) await loadWords();
+  state.levels = new Set(state.catalog.map(item => item.level));
+  state.query = ''; state.onlyFavorites = false; state.statusFilter = 'all'; state.sort = 'original';
+  $('#searchInput').value = '';
+  applyFilters();
+  state.flashIndex = Math.max(0, state.filtered.findIndex(item => item.id === remembered));
+  state.flipped = false;
+  setView('flash');
+}
+
 function bindEvents() {
   document.addEventListener('click', event => {
     const speakEl = event.target.closest('[data-speak]');
     if (speakEl) { event.stopPropagation(); speak(speakEl.dataset.speak); return; }
     const favEl = event.target.closest('[data-favorite]');
     if (favEl) { event.stopPropagation(); toggleFavorite(favEl.dataset.favorite); return; }
+    const editionEl = event.target.closest('[data-edition]');
+    if (editionEl) { setEdition(editionEl.dataset.edition); return; }
+    const moduleEl = event.target.closest('[data-open-edition]');
+    if (moduleEl) { setEdition(moduleEl.dataset.openEdition).then(() => setView('browse')); return; }
     const viewEl = event.target.closest('[data-view]');
     if (viewEl) { setView(viewEl.dataset.view); return; }
     const levelEl = event.target.closest('[data-level]');
@@ -291,7 +415,11 @@ function bindEvents() {
       refreshFilters(); return;
     }
   });
+  document.addEventListener('change', event => {
+    if (event.target.matches('[data-status]')) setWordStatus(event.target.dataset.status, event.target.value);
+  });
   $('#searchInput').addEventListener('input', e => { state.query = e.target.value; refreshFilters(); });
+  $('#statusFilter').addEventListener('change', e => { state.statusFilter = e.target.value; refreshFilters(); });
   $('#sortSelect').addEventListener('change', e => { state.sort = e.target.value; refreshFilters(); });
   $('#allLevelsBtn').addEventListener('click', () => { state.levels = new Set(state.catalog.map(item=>item.level)); refreshFilters(); });
   $('#favoritesOnlyBtn').addEventListener('click', () => { state.onlyFavorites = !state.onlyFavorites; refreshFilters(); });
@@ -299,6 +427,7 @@ function bindEvents() {
   $('#clearFiltersBtn').addEventListener('click', clearFilters);
   $('#emptyClearBtn').addEventListener('click', clearFilters);
   $('#loadMoreBtn').addEventListener('click', () => { state.visibleCount += PAGE_SIZE; renderBrowse(); });
+  $('#resumeBtn').addEventListener('click', () => resumeLast().catch(() => showToast('Không thể tiếp tục, hãy thử lại.')));
   $('#flashCard').addEventListener('click', event => {
     if (event.target.closest('[data-speak], [data-favorite]')) return;
     if (Date.now() > swipeIgnoreUntil) flipCard();
@@ -342,6 +471,7 @@ let swipeIgnoreUntil = 0;
 async function start() {
   $('#year').textContent = new Date().getFullYear();
   bindEvents();
+  updateEditionUI();
   try {
     await loadCatalog();
     setView(viewFromHash(), false);

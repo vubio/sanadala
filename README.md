@@ -5,10 +5,12 @@ Website học tiếng Trung bằng tiếng Việt tại **https://tiengtrung.san
 ## Hiện có
 
 - HSK 3.0 cấp 1–6: 5.456 mục từ từ bảng Excel đã được chuẩn hóa.
+- HSK 2.0 cấp 1–6: 5.000 mục từ, với nghĩa tiếng Việt, nghĩa tiếng Anh và ví dụ; **không có** trường Hán Việt.
+- Chuyển đổi HSK 2.0 / 3.0 trực tiếp từ thanh trên cùng hoặc thư viện chương trình.
 - Thẻ ghi nhớ: chạm/nhấn Space để lật; vuốt ngang, phím mũi tên hoặc nút để chuyển từ.
 - Duyệt từ vựng và bộ lọc cấp độ, từ khóa, danh sách yêu thích, xáo trộn.
 - Đọc tiếng Trung bằng Web Speech API trên thiết bị người học; không lưu tệp âm thanh.
-- Lưu từ yêu thích trên trình duyệt hiện tại bằng `localStorage`.
+- Đánh dấu **Sẽ học / Đang học / Đã học** và **Yêu thích** cho từng từ; lưu trên thiết bị bằng `localStorage`. Có nút tiếp tục ở từ gần nhất và bộ lọc tiến độ.
 - Thông tin ủng hộ ở chân trang và hộp thoại xuất hiện một lần sau khoảng 4 phút học trong mỗi phiên tab.
 
 ## Cấu trúc
@@ -18,9 +20,10 @@ Website học tiếng Trung bằng tiếng Việt tại **https://tiengtrung.san
 | `index.html` | Giao diện tiếng Việt |
 | `styles.css` | Giao diện máy tính và điện thoại |
 | `app.js` | Chế độ học, bộ lọc, đọc giọng và lưu từ |
-| `data/catalog.json` | Danh mục cấp độ |
-| `data/hsk-N.json` | Từ vựng của từng cấp HSK |
-| `scripts/convert_excel.py` | Công cụ chuyển Excel thành JSON |
+| `data/catalog.json`, `data/catalog2.json` | Danh mục HSK 3.0 và 2.0 |
+| `data/hsk-N.json`, `data/hsk2-N.json` | Từ vựng của từng cấp theo phiên bản |
+| `scripts/convert_excel.py` | Chuyển HSK 3.0 Excel thành JSON |
+| `scripts/convert_hsk2.py` | Chuyển sáu Excel HSK 2.0 thành JSON |
 | `CNAME` | Tên miền phụ sử dụng với GitHub Pages |
 
 ## Cập nhật học liệu từ Excel
@@ -33,6 +36,14 @@ python scripts/convert_excel.py "HSK_3.0_Levels_1-6_Revised.xlsx"
 
 Sau đó commit các tệp `data/*.json`. Công cụ tự nhận cột `Level`, `STT`, `Vocabulary`, `Pinyin`, `Vietnamese` và các cột ví dụ như trong bảng gốc. Khi có Excel riêng cho cấp 7–9 theo cùng cấu trúc, chạy lại công cụ với tệp mới; cấp 1–6 được giữ nguyên.
 
+Với HSK 2.0, đặt sáu Excel có tên `150 HSK1.xlsx`, `150 HSK2.xlsx`, `300 HSK3.xlsx`, `600 HSK4.xlsx`, `1300 HSK5.xlsx`, `2500 HSK6.xlsx` trong cùng một thư mục rồi chạy:
+
+```bash
+python scripts/convert_hsk2.py "/duong-dan/toi/thu-muc"
+```
+
+HSK 2.0 sử dụng hai trường từ gốc (`Chinese`, `Pinyin`) và bản từ/phiên âm cho người học (cột F, G); một số từ gốc có chú thích từ loại. Dữ liệu chính sử dụng cột F–L; cột M trở đi trong tệp nguồn không có tiêu đề rõ ràng và chỉ là dữ liệu phụ, không đưa vào website. Bản Excel tổng hợp dành cho tác giả được lưu riêng, không công khai trong repository.
+
 ## Đưa lên GitHub Pages
 
 Tại `Settings → Pages`, chọn `Deploy from a branch`, nhánh `main`, thư mục `/ (root)`, rồi lưu. Đặt **Custom domain** là `tiengtrung.sanadala.com`. Trong Namecheap Advanced DNS, tạo `CNAME` với host `tiengtrung` và value `vubio.github.io`.
@@ -41,5 +52,5 @@ Tại `Settings → Pages`, chọn `Deploy from a branch`, nhánh `main`, thư m
 
 - Giọng đọc Web Speech API tùy thuộc vào trình duyệt, hệ điều hành và các giọng tiếng Trung có sẵn trên thiết bị. Không yêu cầu API key.
 - Dữ liệu JSON được phục vụ công khai cùng website (không phải tệp Excel gốc).
-- Danh sách yêu thích chỉ tồn tại trong trình duyệt; chưa đồng bộ giữa nhiều thiết bị.
+- Tiến độ, lần học gần nhất và yêu thích được lưu riêng theo phiên bản HSK và **chỉ trong trình duyệt trên thiết bị hiện tại**. Xóa dữ liệu website/chế độ riêng tư có thể xóa tiến độ; không có tài khoản, máy chủ dữ liệu hay đồng bộ giữa các thiết bị. Dữ liệu này không được ghi lên GitHub.
 - Ngữ pháp HSK 3.0 và cấp 7–9 đang được để dành cho các bộ học liệu bổ sung.

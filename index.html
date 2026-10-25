@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f8f5ec">
-  <meta name="description" content="Sanadala – học từ vựng tiếng Trung HSK 3.0 bằng thẻ ghi nhớ, tra cứu và bộ lọc, với phát âm và ví dụ tiếng Việt.">
+  <meta name="description" content="Sanadala – học từ vựng tiếng Trung HSK 2.0 hoặc HSK 3.0 bằng thẻ ghi nhớ, tra cứu và bộ lọc, với phát âm, ví dụ và lưu tiến độ trên thiết bị.">
   <title>Tiếng Trung · Sanadala</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=2">
-  <script type="module" src="./app.js?v=2"></script>
+  <link rel="stylesheet" href="./styles.css?v=3">
+  <script type="module" src="./app.js?v=3"></script>
 </head>
 <body>
   <div class="site-shell">
@@ -27,7 +27,10 @@
           <button class="nav-link" data-view="browse">Duyệt từ</button>
           <button class="nav-link" data-view="filter">Bộ lọc</button>
         </nav>
-        <div class="header-right"><span class="edition-pill"><span class="edition-dot"></span> HSK 3.0</span></div>
+        <div class="header-right edition-toggle" role="group" aria-label="Chọn phiên bản HSK">
+          <button type="button" data-edition="2" aria-pressed="false">HSK 2.0</button>
+          <button type="button" data-edition="3" aria-pressed="true">HSK 3.0</button>
+        </div>
       </div>
     </header>
 
@@ -37,10 +40,11 @@
           <div class="hero-copy">
             <span class="eyebrow"><span class="eyebrow-line"></span> GÓC HỌC TIẾNG TRUNG CỦA BẠN</span>
             <h1>Học từng từ.<br><em>Nhớ thật lâu.</em></h1>
-            <p>Khám phá từ vựng HSK 3.0 với phiên âm, nghĩa tiếng Việt và ví dụ thực tế. Học theo nhịp của riêng bạn, mọi lúc, mọi nơi.</p>
+            <p>Khám phá từ vựng <strong id="heroEditionLabel">HSK 3.0</strong> với phiên âm, nghĩa tiếng Việt và ví dụ thực tế. Chọn phiên bản HSK và học theo nhịp riêng của bạn.</p>
             <div class="hero-actions">
               <button class="btn btn-primary" data-view="flash">Bắt đầu học <span aria-hidden="true">↗</span></button>
               <button class="btn btn-outline" data-view="browse">Khám phá từ vựng <span aria-hidden="true">→</span></button>
+              <button class="btn btn-continue" id="resumeBtn" hidden>Tiếp tục từ đang học ↗</button>
             </div>
             <div class="hero-stats" aria-label="Thống kê học liệu">
               <div><strong id="totalWordsHome">5.456</strong><span>Từ vựng</span></div>
@@ -85,15 +89,16 @@
           <div><span class="section-kicker">THƯ VIỆN BÀI HỌC</span><h2>Chương trình học</h2></div>
         </div>
         <div class="module-list">
-          <button class="module-row" data-view="browse"><span class="module-number">01</span><span class="module-copy"><strong>HSK 3.0 · Từ vựng</strong><small>Từ cấp 1 đến cấp 6 · Có phiên âm và ví dụ</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
-          <div class="module-row disabled" aria-label="Ngữ pháp HSK 3.0, sắp ra mắt"><span class="module-number">02</span><span class="module-copy"><strong>HSK 3.0 · Ngữ pháp</strong><small>Học theo mẫu câu và tình huống</small></span><span class="module-soon">Sắp ra mắt</span></div>
-          <div class="module-row disabled" aria-label="Từ vựng HSK 7 đến 9, sắp ra mắt"><span class="module-number">03</span><span class="module-copy"><strong>HSK 3.0 · Cấp 7–9</strong><small>Bổ sung từ các tệp học liệu riêng</small></span><span class="module-soon">Sắp ra mắt</span></div>
+          <button class="module-row" data-open-edition="2"><span class="module-number">01</span><span class="module-copy"><strong>HSK 2.0 · Từ vựng</strong><small>5.000 từ · 6 cấp · Nghĩa và ví dụ tiếng Việt</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
+          <button class="module-row" data-open-edition="3"><span class="module-number">02</span><span class="module-copy"><strong>HSK 3.0 · Từ vựng</strong><small>5.456 từ · 6 cấp · Có âm Hán Việt</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
+          <div class="module-row disabled" aria-label="Ngữ pháp HSK 3.0, sắp ra mắt"><span class="module-number">03</span><span class="module-copy"><strong>HSK 3.0 · Ngữ pháp</strong><small>Học theo mẫu câu và tình huống</small></span><span class="module-soon">Sắp ra mắt</span></div>
+          <div class="module-row disabled" aria-label="Từ vựng HSK 7 đến 9, sắp ra mắt"><span class="module-number">04</span><span class="module-copy"><strong>HSK 3.0 · Cấp 7–9</strong><small>Bổ sung từ các tệp học liệu riêng</small></span><span class="module-soon">Sắp ra mắt</span></div>
         </div>
       </section>
 
       <section id="studyView" class="study-view wrap" hidden>
         <div class="study-header">
-          <div><button class="text-back" data-view="home">← Trang chủ</button><span class="section-kicker">HSK 3.0 · TỪ VỰNG</span><h1 id="studyTitle">Thẻ ghi nhớ</h1><p id="studySubtitle">Chạm vào thẻ để xem nghĩa.</p></div>
+          <div><button class="text-back" data-view="home">← Trang chủ</button><span class="section-kicker" id="studyEditionLabel">HSK 3.0 · TỪ VỰNG</span><h1 id="studyTitle">Thẻ ghi nhớ</h1><p id="studySubtitle">Chạm vào thẻ để xem nghĩa.</p></div>
           <span class="study-counter" id="studyCounter" aria-live="polite">Đang tải…</span>
         </div>
 
@@ -114,7 +119,10 @@
         </div>
 
         <div id="filterDetails" class="filter-details" hidden>
-          <div><strong>Lọc theo nhu cầu</strong><span>Kết quả sẽ được áp dụng cho cả thẻ ghi nhớ và chế độ duyệt.</span></div>
+          <div><strong>Lọc theo nhu cầu</strong><span id="progressSummary">Tiến độ học sẽ được lưu trên thiết bị này.</span></div>
+          <label>Tiến độ
+            <select id="statusFilter"><option value="all">Tất cả</option><option value="planned">Sẽ học</option><option value="learning">Đang học</option><option value="learned">Đã học</option></select>
+          </label>
           <label>Thứ tự
             <select id="sortSelect"><option value="original">Theo cấp độ và số thứ tự</option><option value="alpha">Theo chữ Hán (A–Z)</option><option value="random">Ngẫu nhiên</option></select>
           </label>
@@ -127,6 +135,7 @@
           <div id="flashCard" class="flash-card" tabindex="0" role="button" aria-label="Lật thẻ ghi nhớ" aria-pressed="false">
             <div class="flash-inner"><div id="flashFront" class="flash-face flash-front"></div><div id="flashBack" class="flash-face flash-back"></div></div>
           </div>
+          <div id="flashStatus" class="flash-status"></div>
           <div class="flash-controls">
             <button class="flash-nav" id="prevCardBtn" aria-label="Từ trước">← <span>Trước</span></button>
             <button class="btn btn-primary flip-btn" id="flipCardBtn">Lật thẻ <span>↻</span></button>

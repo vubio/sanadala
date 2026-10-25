@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "edition": "2.0",
+  "total": 5000,
+  "levels": [
+    {
+      "level": 1,
+      "files": [
+        "hsk2-1.json"
+      ],
+      "count": 150
+    },
+    {
+      "level": 2,
+      "files": [
+        "hsk2-2.json"
+      ],
+      "count": 150
+    },
+    {
+      "level": 3,
+      "files": [
+        "hsk2-3.json"
+      ],
+      "count": 300
+    },
+    {
+      "level": 4,
+      "files": [
+        "hsk2-4-1.json",
+        "hsk2-4-2.json"
+      ],
+      "count": 600
+    },
+    {
+      "level": 5,
+      "files": [
+        "hsk2-5-1.json",
+        "hsk2-5-2.json",
+        "hsk2-5-3.json"
+      ],
+      "count": 1300
+    },
+    {
+      "level": 6,
+      "files": [
+        "hsk2-6-1.json",
+        "hsk2-6-2.json",
+        "hsk2-6-3.json",
+        "hsk2-6-4.json",
+        "hsk2-6-5.json"
+      ],
+      "count": 2500
+    }
+  ]
+}
