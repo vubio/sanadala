@@ -1,0 +1,6 @@
+# Keep original source workbooks and personal files out of the public site.
+*.xlsx
+*.xls
+*.csv
+.DS_Store
+node_modules/
