@@ -70,6 +70,7 @@ async function loadWords() {
 function setView(view, updateHash = true) {
   if (!validViews.has(view)) view = 'home';
   state.view = view;
+  document.body.dataset.currentView = view;
   if (updateHash && window.location.hash !== '#' + view) history.pushState(null, '', '#' + view);
   $('#homeView').hidden = view !== 'home';
   $('#studyView').hidden = view === 'home';
