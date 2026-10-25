@@ -26,6 +26,8 @@
 .word-status{display:flex;justify-content:flex-end;border-top:1px dashed #edf0e8;margin-top:15px;padding-top:13px}
 .flash-definition,.word-definition,.word-english{font-size:11px;color:#879486;margin-top:5px}
 .flash-definition{color:#7a9586;text-align:center;max-width:100%;margin-bottom:9px}
+.word-official{font-size:10px;color:#8f9e8d;margin:3px 0 7px;text-align:left}
+.flash-front .word-official{text-align:center;font-size:11px}
 .filter-details{flex-wrap:wrap}
 .filter-details label{min-width:130px}
 @media(max-width:720px){

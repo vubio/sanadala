@@ -251,6 +251,10 @@ function statusSelect(item) {
     ${Object.entries(statuses).map(([key,label]) => `<option value="${key}" ${key === selected ? 'selected' : ''}>${label}</option>`).join('')}
   </select></label>`;
 }
+function officialLabel(item) {
+  if (!item.official || item.official.replace(/\s/g, '') === item.word.replace(/\s/g, '')) return '';
+  return `<div class="word-official">Mục từ HSK: ${escapeHtml(item.official)}</div>`;
+}
 function setWordStatus(id, value) {
   if (!statuses[value]) return;
   if (value === 'planned') delete state.progress[id];
@@ -270,6 +274,7 @@ function renderFlash() {
     <span class="flash-label">HSK ${item.level} · TỪ SỐ ${item.number}</span>
     <div class="flash-word">${escapeHtml(item.word)}</div>
     <div class="flash-pinyin">${escapeHtml(item.pinyin)} ${speakButton(item.word, item.word)}</div>
+    ${officialLabel(item)}
     <span class="flash-instruction">CHẠM ĐỂ XEM NGHĨA ↻</span>`;
   $('#flashBack').innerHTML = `
     <span class="flash-label">NGHĨA TIẾNG VIỆT</span>
@@ -305,6 +310,7 @@ function renderWordCard(item) {
     <div class="word-card-top"><div><span class="word-hsk">HSK ${item.level}</span><span class="word-id">#${item.number}</span></div>${favoriteButton(item)}</div>
     <div class="word-main"><h3>${escapeHtml(item.word)}</h3>${speakButton(item.word, item.word)}</div>
     <div class="word-pinyin">${escapeHtml(item.pinyin)}</div>
+    ${officialLabel(item)}
     <div class="word-meaning">${escapeHtml(item.meaning)}</div>
     ${item.sino ? `<div class="word-sino">Hán Việt: ${escapeHtml(item.sino)}</div>` : ''}
     ${item.english ? `<div class="word-english">Tiếng Anh: ${escapeHtml(item.english)}</div>` : ''}
