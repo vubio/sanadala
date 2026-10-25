@@ -60,8 +60,11 @@ def main():
             assert word and pinyin and vietnamese and example and example_pinyin and example_vi, (level, number)
             converted.append([number, word, pinyin, vietnamese, example, example_pinyin, example_vi,
                               definition_cn, english, official, official_pinyin])
+            # Preserve otherwise-unlabeled original M–R columns for the
+            # downloadable archive; they are not used by the learning site.
+            extras = [row[i] if i < len(row) else None for i in range(12, 18)]
             all_rows.append([level, number, official, official_pinyin, english, word, pinyin,
-                             definition_cn, vietnamese, example, example_pinyin, example_vi])
+                             definition_cn, vietnamese, example, example_pinyin, example_vi] + extras)
         assert len(converted) == int(filename.split(' ')[0]), (filename, len(converted))
         assert [row[0] for row in converted] == list(range(1, len(converted) + 1)), filename
         # Split larger levels to keep each GitHub Pages asset compact.
