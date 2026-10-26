@@ -36,6 +36,7 @@ const state = {
   query: '', onlyFavorites: false, statusFilter: 'all',
   sort: 'original', seed: Math.random() * 100000 | 0,
   flashIndex: 0, flipped: false, visibleCount: PAGE_SIZE,
+  flashRangeStart: 1, flashRangeEnd: null, flashMode: 'sequential', flashOrder: [],
   openExamples: new Set(),
   loaded: false, loadingPromise: null, donationTimer: null, donationPreviousFocus: null,
 };
@@ -147,6 +148,8 @@ async function setEdition(edition) {
   state.catalog = []; state.words = []; state.filtered = []; state.levels = new Set();
   state.loaded = false; state.loadingPromise = null;
   state.query = ''; state.onlyFavorites = false; state.statusFilter = 'all';
+  state.flashRangeStart = 1; state.flashRangeEnd = null;
+  state.flashMode = 'sequential'; state.flashOrder = []; state.flashIndex = 0;
   $('#searchInput').value = '';
   $('#statusFilter').value = 'all';
   $('#loadingState').textContent = 'Đang chuẩn bị học liệu…';
@@ -224,14 +227,56 @@ function applyFilters() {
   });
   if (state.sort === 'alpha') state.filtered.sort((a,b) => a.word.localeCompare(b.word, 'zh'));
   if (state.sort === 'random') state.filtered.sort((a,b) => shuffledKey(a.id) - shuffledKey(b.id));
-  state.flashIndex = 0;
-  state.flipped = false;
+  buildFlashDeck();
   state.visibleCount = state.view === 'browse' ? DICTIONARY_PAGE_SIZE : PAGE_SIZE;
   $('#favoritesOnlyBtn').classList.toggle('active', state.onlyFavorites);
   $('#favoritesOnlyBtn').setAttribute('aria-pressed', String(state.onlyFavorites));
   $('#sortSelect').value = state.sort;
   $('#statusFilter').value = state.statusFilter;
   renderLevelChips();
+}
+function buildFlashDeck() {
+  const total = state.filtered.length;
+  if (!total) {
+    state.flashOrder = [];
+    state.flashIndex = 0;
+    state.flipped = false;
+    syncFlashSettings();
+    return;
+  }
+  if (state.flashRangeStart > total || state.flashRangeStart < 1) state.flashRangeStart = 1;
+  if (state.flashRangeEnd !== null && state.flashRangeEnd < state.flashRangeStart) state.flashRangeEnd = total;
+  const end = Math.min(state.flashRangeEnd ?? total, total);
+  state.flashOrder = Array.from({length: end - state.flashRangeStart + 1}, (_, i) => state.flashRangeStart - 1 + i);
+  if (state.flashMode === 'random') {
+    // Shuffle only the active range; every word appears once before the deck wraps around.
+    for (let i = state.flashOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [state.flashOrder[i], state.flashOrder[j]] = [state.flashOrder[j], state.flashOrder[i]];
+    }
+  }
+  state.flashIndex = 0;
+  state.flipped = false;
+  syncFlashSettings();
+}
+function syncFlashSettings() {
+  const total = state.filtered.length;
+  const end = Math.min(state.flashRangeEnd ?? total, total);
+  $('#flashStartInput').value = total ? state.flashRangeStart : 1;
+  $('#flashEndInput').value = end;
+  $('#flashStartInput').max = total;
+  $('#flashEndInput').max = total;
+  $('#flashRangeNote').textContent = `Theo vị trí trong danh sách · ${numberFormat(total)} từ`;
+  $('#flashRangeAllBtn').hidden = !total || (state.flashRangeStart === 1 && end === total);
+  $$('[data-flash-mode]').forEach(button => {
+    const active = button.dataset.flashMode === state.flashMode;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  $('#flashReshuffleBtn').hidden = state.flashMode !== 'random';
+  $('#flashDeckSummary').textContent = total ?
+    `${numberFormat(state.flashOrder.length)} từ · vị trí ${numberFormat(state.flashRangeStart)}–${numberFormat(end)} · ${state.flashMode === 'random' ? 'ngẫu nhiên' : 'theo thứ tự'}` :
+    'Chưa có từ vựng trong danh sách này.';
 }
 function shuffledKey(id) {
   let hash = state.seed | 0;
@@ -253,7 +298,7 @@ function renderCurrentView() {
   const counts = {planned: 0, learning: 0, learned: 0};
   state.words.forEach(item => counts[statusFor(item.id)]++);
   $('#progressSummary').textContent = `Sẽ học ${numberFormat(counts.planned)} · Đang học ${numberFormat(counts.learning)} · Đã học ${numberFormat(counts.learned)} (lưu trên thiết bị)`;
-  $('#studyCounter').textContent = numberFormat(count) + ' từ';
+  $('#studyCounter').textContent = numberFormat(state.view === 'flash' ? state.flashOrder.length : count) + ' từ';
   $('#emptyState').hidden = count !== 0;
   $('#flashPanel').hidden = state.view !== 'flash' || !count;
   $('#browsePanel').hidden = state.view === 'flash' || !count;
@@ -291,10 +336,11 @@ function setWordStatus(id, value) {
   showToast('Đã lưu: ' + statuses[value]);
 }
 function renderFlash() {
-  const item = state.filtered[state.flashIndex];
+  const position = state.flashOrder[state.flashIndex];
+  const item = state.filtered[position];
   if (!item) return;
   rememberWord(item.id);
-  $('#flashPosition').textContent = `${numberFormat(state.flashIndex + 1)} / ${numberFormat(state.filtered.length)} · ${item.levelLabel}`;
+  $('#flashPosition').textContent = `${numberFormat(state.flashIndex + 1)} / ${numberFormat(state.flashOrder.length)} · ${item.levelLabel} · vị trí ${numberFormat(position + 1)}`;
   $('#flashFront').innerHTML = `
     <span class="flash-label">${escapeHtml(item.levelLabel)} · TỪ SỐ ${item.number}</span>
     <div class="flash-word">${escapeHtml(item.word)}</div>
@@ -319,14 +365,14 @@ function renderFlash() {
   $('#flashCard').setAttribute('aria-pressed', String(state.flipped));
 }
 function flipCard() {
-  if (state.view !== 'flash' || !state.filtered.length) return;
+  if (state.view !== 'flash' || !state.flashOrder.length) return;
   state.flipped = !state.flipped;
   $('#flashCard').classList.toggle('is-flipped', state.flipped);
   $('#flashCard').setAttribute('aria-pressed', String(state.flipped));
 }
 function navigateFlash(delta) {
-  if (state.view !== 'flash' || !state.filtered.length) return;
-  state.flashIndex = (state.flashIndex + delta + state.filtered.length) % state.filtered.length;
+  if (state.view !== 'flash' || !state.flashOrder.length) return;
+  state.flashIndex = (state.flashIndex + delta + state.flashOrder.length) % state.flashOrder.length;
   state.flipped = false;
   renderFlash();
 }
@@ -448,9 +494,10 @@ async function resumeLast() {
   if (!state.loaded) await loadWords();
   state.levels = new Set(state.catalog.map(item => item.level));
   state.query = ''; state.onlyFavorites = false; state.statusFilter = 'all'; state.sort = 'original';
+  state.flashRangeStart = 1; state.flashRangeEnd = null; state.flashMode = 'sequential';
   $('#searchInput').value = '';
   applyFilters();
-  state.flashIndex = Math.max(0, state.filtered.findIndex(item => item.id === remembered));
+  state.flashIndex = Math.max(0, state.flashOrder.findIndex(position => state.filtered[position]?.id === remembered));
   state.flipped = false;
   setView('flash');
 }
@@ -490,10 +537,53 @@ function bindEvents() {
   $('#sortSelect').addEventListener('change', e => { state.sort = e.target.value; refreshFilters(); });
   $('#allLevelsBtn').addEventListener('click', () => { state.levels = new Set(state.catalog.map(item=>item.level)); refreshFilters(); });
   $('#favoritesOnlyBtn').addEventListener('click', () => { state.onlyFavorites = !state.onlyFavorites; refreshFilters(); });
-  $('#shuffleBtn').addEventListener('click', () => { state.seed = Math.random() * 100000 | 0; state.sort = 'random'; refreshFilters(); showToast('Đã trộn thứ tự từ.'); });
+  $('#shuffleBtn').addEventListener('click', () => {
+    if (state.view === 'flash') {
+      state.flashMode = 'random';
+      buildFlashDeck();
+      renderCurrentView();
+    } else {
+      state.seed = Math.random() * 100000 | 0;
+      state.sort = 'random';
+      refreshFilters();
+    }
+    showToast('Đã trộn thứ tự từ.');
+  });
   $('#clearFiltersBtn').addEventListener('click', clearFilters);
   $('#emptyClearBtn').addEventListener('click', clearFilters);
   $('#loadMoreBtn').addEventListener('click', () => { state.visibleCount += PAGE_SIZE; renderBrowse(); });
+  $('#flashRangeForm').addEventListener('submit', event => {
+    event.preventDefault();
+    const start = Number($('#flashStartInput').value);
+    const end = Number($('#flashEndInput').value);
+    const total = state.filtered.length;
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end > total || end < start) {
+      showToast(`Chọn phạm vi từ 1 đến ${numberFormat(total)}, với số bắt đầu không lớn hơn số kết thúc.`);
+      return;
+    }
+    state.flashRangeStart = start;
+    state.flashRangeEnd = end;
+    buildFlashDeck();
+    renderCurrentView();
+  });
+  $('#flashRangeAllBtn').addEventListener('click', () => {
+    state.flashRangeStart = 1;
+    state.flashRangeEnd = null;
+    buildFlashDeck();
+    renderCurrentView();
+  });
+  $$('[data-flash-mode]').forEach(button => button.addEventListener('click', () => {
+    const mode = button.dataset.flashMode;
+    if (mode !== 'random' && mode !== 'sequential') return;
+    state.flashMode = mode;
+    buildFlashDeck();
+    renderCurrentView();
+  }));
+  $('#flashReshuffleBtn').addEventListener('click', () => {
+    state.flashMode = 'random';
+    buildFlashDeck();
+    renderCurrentView();
+  });
   $('#resumeBtn').addEventListener('click', () => resumeLast().catch(() => showToast('Không thể tiếp tục, hãy thử lại.')));
   $('#flashCard').addEventListener('click', event => {
     if (event.target.closest('[data-speak], [data-favorite]')) return;
