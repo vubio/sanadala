@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=8">
-  <script type="module" src="./app.js?v=8"></script>
+  <link rel="stylesheet" href="./styles.css?v=9">
+  <script type="module" src="./app.js?v=9"></script>
 </head>
 <body>
   <div class="site-shell">
@@ -133,6 +133,14 @@
         <div id="loadingState" class="loading-state" role="status">Đang chuẩn bị học liệu…</div>
         <div id="flashPanel" class="flash-panel" hidden>
           <div class="flash-settings" aria-label="Tùy chọn học Flashcards">
+            <div id="flashLevelSelector" class="flash-level-selector">
+              <div class="flash-setting-heading"><strong>Chọn cấp độ HSK</strong><span>Chọn một hoặc nhiều cấp</span></div>
+              <div class="flash-level-buttons" role="group" aria-label="Chọn cấp độ học Flashcards">
+                <button id="flashAllLevelsBtn" type="button" class="flash-level-btn active" aria-pressed="true">Tất cả</button>
+                <div id="flashLevelChips" class="flash-level-chips"></div>
+              </div>
+            </div>
+            <p id="flashCombinedLevelNote" class="flash-combined-level-note" hidden>HSK 7–9 hiện là một danh sách chung, chưa chia riêng từng cấp.</p>
             <div class="flash-setting-group">
               <div class="flash-setting-heading"><strong>Phạm vi ôn tập</strong><span id="flashRangeNote">Theo vị trí trong danh sách từ</span></div>
               <form id="flashRangeForm" class="flash-range-form" novalidate>
