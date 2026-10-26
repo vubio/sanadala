@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "edition": "HSK 3.0 · Cấp 7–9",
+  "total": 5636,
+  "levels": [
+    {
+      "level": 7,
+      "label": "HSK 7–9",
+      "files": [
+        "hsk79-1.json",
+        "hsk79-2.json",
+        "hsk79-3.json",
+        "hsk79-4.json",
+        "hsk79-5.json",
+        "hsk79-6.json",
+        "hsk79-7.json",
+        "hsk79-8.json",
+        "hsk79-9.json",
+        "hsk79-10.json",
+        "hsk79-11.json",
+        "hsk79-12.json"
+      ],
+      "count": 5636
+    }
+  ]
+}

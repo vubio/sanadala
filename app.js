@@ -9,6 +9,11 @@ const PAGE_SIZE = 32;
 const DICTIONARY_PAGE_SIZE = 72;
 const validViews = new Set(['home', 'flash', 'browse', 'filter']);
 const statuses = {planned:'Sẽ học',learning:'Đang học',learned:'Đã học'};
+const editions = {
+  '2': {catalog: 'catalog2.json', name: 'HSK 2.0', study: 'HSK 2.0 · TỪ VỰNG'},
+  '3': {catalog: 'catalog.json', name: 'HSK 3.0', study: 'HSK 3.0 · TỪ VỰNG'},
+  '79': {catalog: 'catalog79.json', name: 'HSK 7–9', study: 'HSK 3.0 · CẤP 7–9'},
+};
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -19,7 +24,7 @@ function readObject(key) {
   } catch { return {}; }
 }
 function savedEdition() {
-  try { return localStorage.getItem(STORAGE_EDITION) === '2' ? '2' : '3'; }
+  try { const saved = localStorage.getItem(STORAGE_EDITION); return editions[saved] ? saved : '3'; }
   catch { return '3'; }
 }
 const state = {
@@ -73,13 +78,17 @@ function viewFromHash() {
 
 async function loadCatalog() {
   const edition = state.edition;
-  const response = await fetch(DATA_BASE + (edition === '2' ? 'catalog2.json' : 'catalog.json'));
+  const response = await fetch(DATA_BASE + editions[edition].catalog);
   if (!response.ok) throw new Error('Không đọc được danh mục từ vựng.');
   const data = await response.json();
   if (edition !== state.edition) return;
   state.catalog = data.levels;
   state.levels = new Set(data.levels.map(item => item.level));
   $('#totalWordsHome').textContent = numberFormat(data.total);
+  $('#totalLevelsHome').textContent = edition === '79' ? '7–9' : '06';
+  $('#levelCaptionText').textContent = edition === '79' ? 'Bộ từ nâng cao' : 'Chọn cấp độ';
+  $('#allLevelsBtn').hidden = edition === '79';
+  $('#levelHint').hidden = edition !== '79';
   renderLevelChips();
 }
 async function loadWords() {
@@ -97,12 +106,12 @@ async function loadWords() {
       }));
       const rows = chunks.flat();
       return rows.map(row => edition === '2' ? ({
-        id: `2:${item.level}-${row[0]}`, level: item.level, number: row[0],
+        id: `2:${item.level}-${row[0]}`, level: item.level, levelLabel: item.label || `HSK ${item.level}`, number: row[0],
         word: row[1], pinyin: row[2], meaning: row[3], example: row[4],
         examplePinyin: row[5], exampleVi: row[6], definition: row[7],
         english: row[8], official: row[9], officialPinyin: row[10], sino: '', note: '',
       }) : ({
-        id: `3:${item.level}-${row[0]}`, level: item.level, number: row[0],
+        id: `${edition}:${item.level}-${row[0]}`, level: item.level, levelLabel: item.label || `HSK ${item.level}`, number: row[0],
         word: row[1], sino: row[2], pinyin: row[3], meaning: row[4],
         example: row[5], traditional: row[6], examplePinyin: row[7],
         exampleSino: row[8], exampleVi: row[9], note: row[10] || '',
@@ -120,8 +129,8 @@ async function loadWords() {
 
 function updateEditionUI() {
   const edition = state.edition;
-  $('#heroEditionLabel').textContent = 'HSK ' + edition + '.0';
-  $('#studyEditionLabel').textContent = 'HSK ' + edition + '.0 · TỪ VỰNG';
+  $('#heroEditionLabel').textContent = editions[edition].name;
+  $('#studyEditionLabel').textContent = editions[edition].study;
   $$('[data-edition]').forEach(button => {
     const active = button.dataset.edition === edition;
     button.classList.toggle('active', active);
@@ -130,7 +139,7 @@ function updateEditionUI() {
   updateResumeButton();
 }
 async function setEdition(edition) {
-  if (!['2', '3'].includes(edition) || edition === state.edition) return;
+  if (!editions[edition] || edition === state.edition) return;
   state.edition = edition;
   try { localStorage.setItem(STORAGE_EDITION, edition); } catch {}
   state.catalog = []; state.words = []; state.filtered = []; state.levels = new Set();
@@ -187,7 +196,7 @@ function setView(view, updateHash = true) {
 
 function renderLevelChips() {
   $('#levelChips').innerHTML = state.catalog.map(item =>
-    `<button class="level-chip ${state.levels.has(item.level) ? 'active' : ''}" data-level="${item.level}" aria-pressed="${state.levels.has(item.level)}">HSK ${item.level}</button>`
+    `<button class="level-chip ${state.levels.has(item.level) ? 'active' : ''}" data-level="${item.level}" aria-pressed="${state.levels.has(item.level)}" ${state.catalog.length === 1 ? 'disabled' : ''}>${escapeHtml(item.label || `HSK ${item.level}`)}</button>`
   ).join('');
 }
 function applyFilters() {
@@ -198,7 +207,7 @@ function applyFilters() {
     if (state.statusFilter !== 'all' && statusFor(item.id) !== state.statusFilter) return false;
     if (!q) return true;
     return [item.word, item.official, item.pinyin, item.meaning, item.sino, item.english, item.definition,
-      item.example, item.examplePinyin, item.exampleVi, item.note]
+      item.example, item.examplePinyin, item.exampleSino, item.exampleVi, item.note]
       .some(value => normalize(value).includes(q));
   });
   if (state.sort === 'alpha') state.filtered.sort((a,b) => a.word.localeCompare(b.word, 'zh'));
@@ -273,9 +282,9 @@ function renderFlash() {
   const item = state.filtered[state.flashIndex];
   if (!item) return;
   rememberWord(item.id);
-  $('#flashPosition').textContent = `${numberFormat(state.flashIndex + 1)} / ${numberFormat(state.filtered.length)} · HSK ${item.level}`;
+  $('#flashPosition').textContent = `${numberFormat(state.flashIndex + 1)} / ${numberFormat(state.filtered.length)} · ${item.levelLabel}`;
   $('#flashFront').innerHTML = `
-    <span class="flash-label">HSK ${item.level} · TỪ SỐ ${item.number}</span>
+    <span class="flash-label">${escapeHtml(item.levelLabel)} · TỪ SỐ ${item.number}</span>
     <div class="flash-word">${escapeHtml(item.word)}</div>
     <div class="flash-pinyin">${escapeHtml(item.pinyin)} ${speakButton(item.word, item.word)}</div>
     ${officialLabel(item)}
@@ -311,7 +320,7 @@ function navigateFlash(delta) {
 }
 function renderWordCard(item) {
   return `<article class="word-card">
-    <div class="word-card-top"><div><span class="word-hsk">HSK ${item.level}</span><span class="word-id">#${item.number}</span></div>${favoriteButton(item)}</div>
+    <div class="word-card-top"><div><span class="word-hsk">${escapeHtml(item.levelLabel)}</span><span class="word-id">#${item.number}</span></div>${favoriteButton(item)}</div>
     <div class="word-main"><h3>${escapeHtml(item.word)}</h3>${speakButton(item.word, item.word)}</div>
     <div class="word-pinyin">${escapeHtml(item.pinyin)}</div>
     ${officialLabel(item)}
@@ -336,7 +345,7 @@ function renderDictionaryEntry(item) {
         <span class="dictionary-pinyin">${escapeHtml(item.pinyin)}</span>
       </div>
       <div class="dictionary-meaning">${escapeHtml(item.meaning)}</div>
-      <span class="dictionary-level">HSK ${item.level} · ${item.number}</span>
+      <span class="dictionary-level">${escapeHtml(item.levelLabel)} · ${item.number}</span>
     </div>
     <details class="dictionary-details" data-example-id="${escapeHtml(item.id)}" ${state.openExamples.has(item.id) ? 'open' : ''}>
       <summary><span>Xem ví dụ</span><span class="dictionary-chevron" aria-hidden="true">⌄</span></summary>

@@ -6,7 +6,8 @@ Website học tiếng Trung bằng tiếng Việt tại **https://tiengtrung.san
 
 - HSK 3.0 cấp 1–6: 5.456 mục từ từ bảng Excel đã được chuẩn hóa.
 - HSK 2.0 cấp 1–6: 5.000 mục từ, với nghĩa tiếng Việt, nghĩa tiếng Anh và ví dụ; **không có** trường Hán Việt.
-- Chuyển đổi HSK 2.0 / 3.0 trực tiếp từ thanh trên cùng hoặc thư viện chương trình.
+- HSK 3.0 cấp 7–9: **5.636 mục từ trong một bộ nâng cao riêng**, với Hán Việt, nghĩa tiếng Việt, ví dụ tiếng Trung và phiên âm cho ví dụ. Bảng nguồn nhóm 7–9 chung, không ghi cấp 7, 8, 9 của từng từ.
+- Chuyển đổi ba bộ (HSK 2.0, HSK 3.0 cấp 1–6 và HSK 7–9) trực tiếp từ thanh trên cùng hoặc thư viện chương trình.
 - Flashcards: chạm/nhấn Space để lật; vuốt ngang, phím mũi tên hoặc nút để chuyển từ.
 - **Danh sách từ** dạng từ điển gọn, có thể mở ví dụ và nghe phát âm từng từ. **Bộ lọc** giữ các thẻ chi tiết kèm trạng thái học tập.
 - Bộ lọc cấp độ, từ khóa, danh sách yêu thích, xáo trộn và tiến độ học.
@@ -22,10 +23,11 @@ Website học tiếng Trung bằng tiếng Việt tại **https://tiengtrung.san
 | `index.html` | Giao diện tiếng Việt |
 | `styles.css` | Giao diện máy tính và điện thoại |
 | `app.js` | Chế độ học, bộ lọc, đọc giọng và lưu từ |
-| `data/catalog.json`, `data/catalog2.json` | Danh mục HSK 3.0 và 2.0 |
-| `data/hsk-N.json`, `data/hsk2-N.json` | Từ vựng của từng cấp theo phiên bản |
+| `data/catalog.json`, `data/catalog2.json`, `data/catalog79.json` | Ba danh mục bộ từ |
+| `data/hsk-N.json`, `data/hsk2-N.json`, `data/hsk79-N.json` | Từ vựng theo bộ, HSK 7–9 chia tệp để tải nhanh |
 | `scripts/convert_excel.py` | Chuyển HSK 3.0 Excel thành JSON |
 | `scripts/convert_hsk2.py` | Chuyển sáu Excel HSK 2.0 thành JSON |
+| `scripts/convert_hsk79.py` | Chuyển Excel nâng cao HSK 7–9 thành JSON riêng |
 | `CNAME` | Tên miền phụ sử dụng với GitHub Pages |
 
 ## Cập nhật học liệu từ Excel
@@ -36,7 +38,15 @@ Không đưa bản `.xlsx` gốc vào repository công khai. Từ máy cá nhân
 python scripts/convert_excel.py "HSK_3.0_Levels_1-6_Revised.xlsx"
 ```
 
-Sau đó commit các tệp `data/*.json`. Công cụ tự nhận cột `Level`, `STT`, `Vocabulary`, `Pinyin`, `Vietnamese` và các cột ví dụ như trong bảng gốc. Khi có Excel riêng cho cấp 7–9 theo cùng cấu trúc, chạy lại công cụ với tệp mới; cấp 1–6 được giữ nguyên.
+Sau đó commit các tệp `data/*.json`. Công cụ HSK 3.0 cấp 1–6 tự nhận cột `Level`, `STT`, `Vocabulary`, `Pinyin`, `Vietnamese` và các cột ví dụ như trong bảng gốc.
+
+Với bảng HSK 7–9 riêng (các cột `Level`, `Number`, `Vocabulary`, `Sinovietnamese`, `Pinyin`, `Vietnamese`, `Example_Chinese`, `Example_Sinovietnamese`, `Example_Pinyin`, `Example_Vietnamese`):
+
+```bash
+python scripts/convert_hsk79.py "HSK7_Examples_1-5636_Complete_with_Example_Readings.xlsx"
+```
+
+Công cụ chuyển riêng sheet `HSK_1-5636` sang `catalog79.json` và các đoạn `hsk79-N.json`, giữ nguyên dữ liệu của HSK 3.0 cấp 1–6. Sheet biên tập `Gloss_Changes` không được đưa lên web.
 
 Với HSK 2.0, đặt sáu Excel có tên `150 HSK1.xlsx`, `150 HSK2.xlsx`, `300 HSK3.xlsx`, `600 HSK4.xlsx`, `1300 HSK5.xlsx`, `2500 HSK6.xlsx` trong cùng một thư mục rồi chạy:
 
@@ -55,4 +65,4 @@ Tại `Settings → Pages`, chọn `Deploy from a branch`, nhánh `main`, thư m
 - Giọng đọc Web Speech API tùy thuộc vào trình duyệt, hệ điều hành và các giọng tiếng Trung có sẵn trên thiết bị. Không yêu cầu API key.
 - Dữ liệu JSON được phục vụ công khai cùng website (không phải tệp Excel gốc).
 - Tiến độ, lần học gần nhất và yêu thích được lưu riêng theo phiên bản HSK và **chỉ trong trình duyệt trên thiết bị hiện tại**. Xóa dữ liệu website/chế độ riêng tư có thể xóa tiến độ; không có tài khoản, máy chủ dữ liệu hay đồng bộ giữa các thiết bị. Dữ liệu này không được ghi lên GitHub.
-- Ngữ pháp HSK 3.0 và cấp 7–9 đang được để dành cho các bộ học liệu bổ sung.
+- Ngữ pháp HSK 3.0 đang được để dành cho bộ học liệu bổ sung.

@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f8f5ec">
-  <meta name="description" content="Sanadala – luyện tiếng Trung HSK 2.0 và HSK 3.0 với Flashcards, danh sách từ, bộ lọc, phát âm, ví dụ và lưu tiến độ trên thiết bị.">
+  <meta name="description" content="Sanadala – luyện tiếng Trung HSK 2.0, HSK 3.0 cấp 1–6 và HSK 7–9 với Flashcards, danh sách từ, bộ lọc, phát âm, ví dụ và lưu tiến độ trên thiết bị.">
   <title>Luyện Tiếng Trung · Sanadala</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=5">
-  <script type="module" src="./app.js?v=5"></script>
+  <link rel="stylesheet" href="./styles.css?v=6">
+  <script type="module" src="./app.js?v=6"></script>
 </head>
 <body>
   <div class="site-shell">
@@ -27,9 +27,10 @@
           <button class="nav-link" data-view="browse">Danh sách từ</button>
           <button class="nav-link" data-view="filter">Bộ lọc</button>
         </nav>
-        <div class="header-right edition-toggle" role="group" aria-label="Chọn phiên bản HSK">
-          <button type="button" data-edition="2" aria-pressed="false">HSK 2.0</button>
-          <button type="button" data-edition="3" aria-pressed="true">HSK 3.0</button>
+        <div class="header-right edition-toggle" role="group" aria-label="Chọn bộ từ vựng HSK">
+          <button type="button" data-edition="2" aria-label="HSK 2.0, cấp 1 đến 6" aria-pressed="false"><span class="edition-full">HSK 2.0</span><span class="edition-short" aria-hidden="true">2.0</span></button>
+          <button type="button" data-edition="3" aria-label="HSK 3.0, cấp 1 đến 6" aria-pressed="true"><span class="edition-full">HSK 3.0</span><span class="edition-short" aria-hidden="true">3.0</span></button>
+          <button type="button" data-edition="79" aria-label="HSK 3.0, cấp 7 đến 9" aria-pressed="false"><span class="edition-full">HSK 7–9</span><span class="edition-short" aria-hidden="true">7–9</span></button>
         </div>
       </div>
     </header>
@@ -49,7 +50,7 @@
             <div class="hero-stats" aria-label="Thống kê học liệu">
               <div><strong id="totalWordsHome">5.456</strong><span>Từ vựng</span></div>
               <div class="stat-separator"></div>
-              <div><strong>06</strong><span>Cấp độ HSK</span></div>
+              <div><strong id="totalLevelsHome">06</strong><span>Cấp độ HSK</span></div>
               <div class="stat-separator"></div>
               <div><strong>100%</strong><span>Tiếng Việt</span></div>
             </div>
@@ -91,8 +92,8 @@
         <div class="module-list">
           <button class="module-row" data-open-edition="2"><span class="module-number">01</span><span class="module-copy"><strong>HSK 2.0 · Từ vựng</strong><small>5.000 từ · 6 cấp · Nghĩa và ví dụ tiếng Việt</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
           <button class="module-row" data-open-edition="3"><span class="module-number">02</span><span class="module-copy"><strong>HSK 3.0 · Từ vựng</strong><small>5.456 từ · 6 cấp · Có âm Hán Việt</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
-          <div class="module-row disabled" aria-label="Ngữ pháp HSK 3.0, sắp ra mắt"><span class="module-number">03</span><span class="module-copy"><strong>HSK 3.0 · Ngữ pháp</strong><small>Học theo mẫu câu và tình huống</small></span><span class="module-soon">Sắp ra mắt</span></div>
-          <div class="module-row disabled" aria-label="Từ vựng HSK 7 đến 9, sắp ra mắt"><span class="module-number">04</span><span class="module-copy"><strong>HSK 3.0 · Cấp 7–9</strong><small>Bổ sung từ các tệp học liệu riêng</small></span><span class="module-soon">Sắp ra mắt</span></div>
+          <button class="module-row" data-open-edition="79"><span class="module-number">03</span><span class="module-copy"><strong>HSK 3.0 · Cấp 7–9</strong><small>5.636 từ nâng cao · Hán Việt, ví dụ và phiên âm</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
+          <div class="module-row disabled" aria-label="Ngữ pháp HSK 3.0, sắp ra mắt"><span class="module-number">04</span><span class="module-copy"><strong>HSK 3.0 · Ngữ pháp</strong><small>Học theo mẫu câu và tình huống</small></span><span class="module-soon">Sắp ra mắt</span></div>
         </div>
       </section>
 
@@ -109,8 +110,9 @@
         </div>
 
         <div class="filter-toolbar">
-          <div class="level-caption">Chọn cấp độ <button id="allLevelsBtn" class="inline-link">Chọn tất cả</button></div>
+          <div class="level-caption"><span id="levelCaptionText">Chọn cấp độ</span> <button id="allLevelsBtn" class="inline-link">Chọn tất cả</button></div>
           <div id="levelChips" class="level-chips" role="group" aria-label="Cấp độ HSK"></div>
+          <p id="levelHint" class="level-hint" hidden>Danh sách nâng cao trong tệp nguồn được gộp chung cho HSK 7–9, không chia riêng cấp 7, 8 và 9.</p>
           <div class="search-row">
             <label class="search-field"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Tìm chữ Hán, pinyin hoặc nghĩa tiếng Việt…" aria-label="Tìm từ vựng"><kbd>/</kbd></label>
             <button class="mini-control" id="favoritesOnlyBtn" aria-pressed="false" title="Chỉ hiển thị từ đã lưu"><span aria-hidden="true">♡</span><span>Từ đã lưu</span></button>
