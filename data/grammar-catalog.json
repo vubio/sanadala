@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "levels": [
+    {
+      "key": "1",
+      "label": "HSK 1",
+      "file": "grammar-1.json",
+      "lessons": 48,
+      "items": 135,
+      "examples": 199
+    },
+    {
+      "key": "2",
+      "label": "HSK 2",
+      "file": "grammar-2.json",
+      "lessons": 81,
+      "items": 223,
+      "examples": 285
+    },
+    {
+      "key": "3",
+      "label": "HSK 3",
+      "file": "grammar-3.json",
+      "lessons": 81,
+      "items": 81,
+      "examples": 162
+    },
+    {
+      "key": "4",
+      "label": "HSK 4",
+      "file": "grammar-4.json",
+      "lessons": 76,
+      "items": 142,
+      "examples": 178
+    },
+    {
+      "key": "5",
+      "label": "HSK 5",
+      "file": "grammar-5.json",
+      "lessons": 71,
+      "items": 138,
+      "examples": 191
+    },
+    {
+      "key": "6",
+      "label": "HSK 6",
+      "file": "grammar-6.json",
+      "lessons": 67,
+      "items": 73,
+      "examples": 174
+    },
+    {
+      "key": "79",
+      "label": "HSK 7–9",
+      "file": "grammar-79.json",
+      "lessons": 148,
+      "items": 166,
+      "examples": 360
+    }
+  ],
+  "totalLessons": 572,
+  "totalItems": 958,
+  "totalExamples": 1549
+}

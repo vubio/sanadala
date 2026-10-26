@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f8f5ec">
-  <meta name="description" content="Sanadala – luyện tiếng Trung HSK 2.0, HSK 3.0 cấp 1–6 và HSK 7–9 với Flashcards, danh sách từ, bộ lọc, phát âm, ví dụ và lưu tiến độ trên thiết bị.">
+  <meta name="description" content="Sanadala – luyện từ vựng và ngữ pháp HSK bằng tiếng Việt, từ cấp 1 đến 9. Flashcards, giải thích ngữ pháp, ví dụ, phát âm và lưu tiến độ trên thiết bị.">
   <title>Luyện Tiếng Trung · Sanadala</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=6">
-  <script type="module" src="./app.js?v=6"></script>
+  <link rel="stylesheet" href="./styles.css?v=7">
+  <script type="module" src="./app.js?v=7"></script>
 </head>
 <body>
   <div class="site-shell">
@@ -26,6 +26,7 @@
           <button class="nav-link" data-view="flash">Flashcards</button>
           <button class="nav-link" data-view="browse">Danh sách từ</button>
           <button class="nav-link" data-view="filter">Bộ lọc</button>
+          <button class="nav-link" data-view="grammar">Ngữ pháp</button>
         </nav>
         <div class="header-right edition-toggle" role="group" aria-label="Chọn bộ từ vựng HSK">
           <button type="button" data-edition="2" aria-label="HSK 2.0, cấp 1 đến 6" aria-pressed="false"><span class="edition-full">HSK 2.0</span><span class="edition-short" aria-hidden="true">2.0</span></button>
@@ -51,8 +52,6 @@
               <div><strong id="totalWordsHome">5.456</strong><span>Từ vựng</span></div>
               <div class="stat-separator"></div>
               <div><strong id="totalLevelsHome">06</strong><span>Cấp độ HSK</span></div>
-              <div class="stat-separator"></div>
-              <div><strong>100%</strong><span>Tiếng Việt</span></div>
             </div>
           </div>
           <div class="hero-art" aria-hidden="true">
@@ -93,7 +92,7 @@
           <button class="module-row" data-open-edition="2"><span class="module-number">01</span><span class="module-copy"><strong>HSK 2.0 · Từ vựng</strong><small>5.000 từ · 6 cấp · Nghĩa và ví dụ tiếng Việt</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
           <button class="module-row" data-open-edition="3"><span class="module-number">02</span><span class="module-copy"><strong>HSK 3.0 · Từ vựng</strong><small>5.456 từ · 6 cấp · Có âm Hán Việt</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
           <button class="module-row" data-open-edition="79"><span class="module-number">03</span><span class="module-copy"><strong>HSK 3.0 · Cấp 7–9</strong><small>5.636 từ nâng cao · Hán Việt, ví dụ và phiên âm</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
-          <div class="module-row disabled" aria-label="Ngữ pháp HSK 3.0, sắp ra mắt"><span class="module-number">04</span><span class="module-copy"><strong>HSK 3.0 · Ngữ pháp</strong><small>Học theo mẫu câu và tình huống</small></span><span class="module-soon">Sắp ra mắt</span></div>
+          <button class="module-row" data-view="grammar"><span class="module-number">04</span><span class="module-copy"><strong>HSK 3.0 · Ngữ pháp</strong><small>572 bài · Cấp 1–6 và 7–9 · Giải thích & ví dụ</small></span><span class="module-available">Đang mở</span><span class="module-next">→</span></button>
         </div>
       </section>
 
@@ -152,6 +151,46 @@
         </div>
         <div id="emptyState" class="empty-state" hidden><div>找不到</div><h3>Không tìm thấy từ phù hợp</h3><p>Hãy thử từ khóa hoặc cấp độ khác.</p><button class="btn btn-outline btn-small" id="emptyClearBtn">Đặt lại bộ lọc</button></div>
       </section>
+
+      <section id="grammarView" class="grammar-view wrap" hidden>
+        <div class="grammar-heading">
+          <div>
+            <button class="text-back" data-view="home">← Trang chủ</button>
+            <span class="section-kicker">NGỮ PHÁP HSK 3.0</span>
+            <h1>Học ngữ pháp theo bài</h1>
+            <p>Hiểu cấu trúc, xem cách dùng và luyện nghe bằng các câu ví dụ tiếng Trung.</p>
+          </div>
+          <span id="grammarTotal" class="study-counter">572 bài học</span>
+        </div>
+
+        <div class="grammar-toolbar">
+          <span class="grammar-toolbar-label">Chọn cấp độ</span>
+          <div id="grammarLevels" class="grammar-levels" role="group" aria-label="Cấp độ ngữ pháp HSK"></div>
+          <div class="grammar-search-row">
+            <label class="grammar-search-field"><span aria-hidden="true">⌕</span><input id="grammarSearch" type="search" placeholder="Tìm cấu trúc, bài học hoặc ví dụ…" aria-label="Tìm ngữ pháp"></label>
+            <button id="grammarResumeBtn" class="grammar-resume" hidden>Tiếp tục bài gần nhất ↗</button>
+          </div>
+          <span class="grammar-toolbar-label grammar-topic-label">Chủ đề</span>
+          <div id="grammarTopics" class="grammar-topics" role="group" aria-label="Chủ đề ngữ pháp"></div>
+          <div class="grammar-status-filter" role="group" aria-label="Lọc tiến độ học ngữ pháp">
+            <button data-grammar-filter="all" class="active" aria-pressed="true">Tất cả</button>
+            <button data-grammar-filter="planned" aria-pressed="false">Sẽ học</button>
+            <button data-grammar-filter="learning" aria-pressed="false">Đang học</button>
+            <button data-grammar-filter="learned" aria-pressed="false">Đã học</button>
+            <button data-grammar-filter="favorite" aria-pressed="false">♡ Yêu thích</button>
+          </div>
+        </div>
+
+        <div id="grammarLoading" class="loading-state" role="status">Đang tải bài ngữ pháp…</div>
+        <div id="grammarContent" class="grammar-content" hidden>
+          <aside class="grammar-sidebar" aria-label="Danh sách bài học">
+            <div class="grammar-list-heading"><strong id="grammarListCount">Danh sách bài</strong><span id="grammarProgressCount"></span></div>
+            <div id="grammarLessonList" class="grammar-lesson-list"></div>
+          </aside>
+          <article id="grammarLesson" class="grammar-lesson" aria-live="polite"></article>
+        </div>
+        <div id="grammarEmpty" class="empty-state" hidden><div>找不到</div><h3>Không tìm thấy bài phù hợp</h3><p>Thử một cấp độ, chủ đề hoặc từ khóa khác.</p><button id="grammarClearBtn" class="btn btn-outline btn-small">Xóa bộ lọc</button></div>
+      </section>
     </main>
 
     <footer class="site-footer">
@@ -174,6 +213,7 @@
       <button data-view="flash"><span aria-hidden="true">▣</span>Flashcards</button>
       <button data-view="browse"><span aria-hidden="true">☰</span>Danh sách từ</button>
       <button data-view="filter"><span aria-hidden="true">⌕</span>Bộ lọc</button>
+      <button data-view="grammar"><span aria-hidden="true">文</span>Ngữ pháp</button>
     </nav>
   </div>
 

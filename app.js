@@ -1,3 +1,5 @@
+import { initGrammar, showGrammar } from './grammar.js?v=1';
+
 const DATA_BASE = './data/';
 const DONATION_DELAY = 4 * 60 * 1000;
 const STORAGE_FAVORITES = 'sanadala-hsk-favorites-v1';
@@ -7,7 +9,7 @@ const STORAGE_RECENT = 'sanadala-hsk-recent-v1';
 const STORAGE_DONATION = 'sanadala-donation-seen-v1';
 const PAGE_SIZE = 32;
 const DICTIONARY_PAGE_SIZE = 72;
-const validViews = new Set(['home', 'flash', 'browse', 'filter']);
+const validViews = new Set(['home', 'flash', 'browse', 'filter', 'grammar']);
 const statuses = {planned:'Sẽ học',learning:'Đang học',learned:'Đã học'};
 const editions = {
   '2': {catalog: 'catalog2.json', name: 'HSK 2.0', study: 'HSK 2.0 · TỪ VỰNG'},
@@ -165,7 +167,8 @@ function setView(view, updateHash = true) {
   document.body.dataset.currentView = view;
   if (updateHash && window.location.hash !== '#' + view) history.pushState(null, '', '#' + view);
   $('#homeView').hidden = view !== 'home';
-  $('#studyView').hidden = view === 'home';
+  $('#studyView').hidden = view === 'home' || view === 'grammar';
+  $('#grammarView').hidden = view !== 'grammar';
   $$('[data-view]').forEach(el => {
     const isActive = el.dataset.view === view;
     el.classList.toggle('active', isActive);
@@ -173,6 +176,15 @@ function setView(view, updateHash = true) {
     if (el.classList.contains('mobile-nav') || el.closest('.mobile-nav')) el.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
   if (view === 'home') { window.scrollTo({top:0,behavior:'instant'}); return; }
+  if (view === 'grammar') {
+    window.scrollTo({top:0,behavior:'instant'});
+    startDonationTimer();
+    showGrammar().catch(error => {
+      $('#grammarLoading').textContent = 'Không tải được ngữ pháp. Hãy tải lại trang để thử lại.';
+      console.error('Grammar load failed:', error);
+    });
+    return;
+  }
   const headings = {
     flash: ['Flashcards', 'Lật thẻ, nghe phát âm và ghi nhớ từng từ.'],
     browse: ['Danh sách từ', 'Tra nhanh chữ Hán, pinyin và nghĩa tiếng Việt. Mở từng từ để xem ví dụ.'],
@@ -526,6 +538,7 @@ let swipeIgnoreUntil = 0;
 async function start() {
   $('#year').textContent = new Date().getFullYear();
   bindEvents();
+  initGrammar();
   updateEditionUI();
   try {
     await loadCatalog();
