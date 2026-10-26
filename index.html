@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=7">
-  <script type="module" src="./app.js?v=7"></script>
+  <link rel="stylesheet" href="./styles.css?v=8">
+  <script type="module" src="./app.js?v=8"></script>
 </head>
 <body>
   <div class="site-shell">
@@ -132,6 +132,26 @@
 
         <div id="loadingState" class="loading-state" role="status">Đang chuẩn bị học liệu…</div>
         <div id="flashPanel" class="flash-panel" hidden>
+          <div class="flash-settings" aria-label="Tùy chọn học Flashcards">
+            <div class="flash-setting-group">
+              <div class="flash-setting-heading"><strong>Phạm vi ôn tập</strong><span id="flashRangeNote">Theo vị trí trong danh sách từ</span></div>
+              <form id="flashRangeForm" class="flash-range-form" novalidate>
+                <label>Từ vị trí <input id="flashStartInput" type="number" min="1" step="1" inputmode="numeric" value="1" aria-label="Bắt đầu từ vị trí số"></label>
+                <label>Đến vị trí <input id="flashEndInput" type="number" min="1" step="1" inputmode="numeric" value="5456" aria-label="Kết thúc ở vị trí số"></label>
+                <button class="flash-range-apply" type="submit">Áp dụng</button>
+                <button class="flash-range-reset" id="flashRangeAllBtn" type="button">Toàn bộ</button>
+              </form>
+            </div>
+            <div class="flash-setting-group flash-order-group">
+              <div class="flash-setting-heading"><strong>Thứ tự thẻ</strong><span>Ngẫu nhiên không lặp đến hết lượt</span></div>
+              <div class="flash-order-buttons" role="group" aria-label="Cách sắp xếp Flashcards">
+                <button type="button" class="flash-order-btn active" data-flash-mode="sequential" aria-pressed="true">Theo thứ tự</button>
+                <button type="button" class="flash-order-btn" data-flash-mode="random" aria-pressed="false">⇄ Ngẫu nhiên</button>
+                <button type="button" id="flashReshuffleBtn" class="flash-reshuffle" hidden>Trộn lại ↻</button>
+              </div>
+            </div>
+            <p class="flash-deck-summary" id="flashDeckSummary" aria-live="polite">Đang học toàn bộ danh sách.</p>
+          </div>
           <div class="flash-meta"><span id="flashPosition">1 / 5.456</span><span>Chạm hoặc nhấn phím Space để lật thẻ</span></div>
           <div id="flashCard" class="flash-card" tabindex="0" role="button" aria-label="Lật thẻ ghi nhớ" aria-pressed="false">
             <div class="flash-inner"><div id="flashFront" class="flash-face flash-front"></div><div id="flashBack" class="flash-face flash-back"></div></div>
