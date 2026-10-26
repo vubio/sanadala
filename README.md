@@ -7,8 +7,10 @@ Website học tiếng Trung bằng tiếng Việt tại **https://tiengtrung.san
 - HSK 3.0 cấp 1–6: 5.456 mục từ từ bảng Excel đã được chuẩn hóa.
 - HSK 2.0 cấp 1–6: 5.000 mục từ, với nghĩa tiếng Việt, nghĩa tiếng Anh và ví dụ; **không có** trường Hán Việt.
 - Chuyển đổi HSK 2.0 / 3.0 trực tiếp từ thanh trên cùng hoặc thư viện chương trình.
-- Thẻ ghi nhớ: chạm/nhấn Space để lật; vuốt ngang, phím mũi tên hoặc nút để chuyển từ.
-- Duyệt từ vựng và bộ lọc cấp độ, từ khóa, danh sách yêu thích, xáo trộn.
+- Flashcards: chạm/nhấn Space để lật; vuốt ngang, phím mũi tên hoặc nút để chuyển từ.
+- **Danh sách từ** dạng từ điển gọn, có thể mở ví dụ và nghe phát âm từng từ. **Bộ lọc** giữ các thẻ chi tiết kèm trạng thái học tập.
+- Bộ lọc cấp độ, từ khóa, danh sách yêu thích, xáo trộn và tiến độ học.
+- Liên kết đến kênh YouTube [Luyện Tiếng Trung](https://www.youtube.com/@luyentiengtrung) ở chân trang.
 - Đọc tiếng Trung bằng Web Speech API trên thiết bị người học; không lưu tệp âm thanh.
 - Đánh dấu **Sẽ học / Đang học / Đã học** và **Yêu thích** cho từng từ; lưu trên thiết bị bằng `localStorage`. Có nút tiếp tục ở từ gần nhất và bộ lọc tiến độ.
 - Thông tin ủng hộ ở chân trang và hộp thoại xuất hiện một lần sau khoảng 4 phút học trong mỗi phiên tab.

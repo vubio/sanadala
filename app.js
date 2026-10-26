@@ -6,6 +6,7 @@ const STORAGE_PROGRESS = 'sanadala-hsk-progress-v1';
 const STORAGE_RECENT = 'sanadala-hsk-recent-v1';
 const STORAGE_DONATION = 'sanadala-donation-seen-v1';
 const PAGE_SIZE = 32;
+const DICTIONARY_PAGE_SIZE = 72;
 const validViews = new Set(['home', 'flash', 'browse', 'filter']);
 const statuses = {planned:'Sẽ học',learning:'Đang học',learned:'Đã học'};
 
@@ -28,6 +29,7 @@ const state = {
   query: '', onlyFavorites: false, statusFilter: 'all',
   sort: 'original', seed: Math.random() * 100000 | 0,
   flashIndex: 0, flipped: false, visibleCount: PAGE_SIZE,
+  openExamples: new Set(),
   loaded: false, loadingPromise: null, donationTimer: null, donationPreviousFocus: null,
 };
 
@@ -148,7 +150,9 @@ async function setEdition(edition) {
 
 function setView(view, updateHash = true) {
   if (!validViews.has(view)) view = 'home';
+  const previousView = state.view;
   state.view = view;
+  if (view !== previousView) state.visibleCount = view === 'browse' ? DICTIONARY_PAGE_SIZE : PAGE_SIZE;
   document.body.dataset.currentView = view;
   if (updateHash && window.location.hash !== '#' + view) history.pushState(null, '', '#' + view);
   $('#homeView').hidden = view !== 'home';
@@ -161,8 +165,8 @@ function setView(view, updateHash = true) {
   });
   if (view === 'home') { window.scrollTo({top:0,behavior:'instant'}); return; }
   const headings = {
-    flash: ['Thẻ ghi nhớ', 'Lật thẻ, nghe phát âm và ghi nhớ từng từ.'],
-    browse: ['Duyệt từ vựng', 'Xem nghĩa, phiên âm và ví dụ của từng từ.'],
+    flash: ['Flashcards', 'Lật thẻ, nghe phát âm và ghi nhớ từng từ.'],
+    browse: ['Danh sách từ', 'Tra nhanh chữ Hán, pinyin và nghĩa tiếng Việt. Mở từng từ để xem ví dụ.'],
     filter: ['Bộ lọc từ vựng', 'Tìm đúng những từ bạn cần và lưu để ôn tập.'],
   };
   $('#studyTitle').textContent = headings[view][0];
@@ -201,7 +205,7 @@ function applyFilters() {
   if (state.sort === 'random') state.filtered.sort((a,b) => shuffledKey(a.id) - shuffledKey(b.id));
   state.flashIndex = 0;
   state.flipped = false;
-  state.visibleCount = PAGE_SIZE;
+  state.visibleCount = state.view === 'browse' ? DICTIONARY_PAGE_SIZE : PAGE_SIZE;
   $('#favoritesOnlyBtn').classList.toggle('active', state.onlyFavorites);
   $('#favoritesOnlyBtn').setAttribute('aria-pressed', String(state.onlyFavorites));
   $('#sortSelect').value = state.sort;
@@ -324,9 +328,38 @@ function renderWordCard(item) {
     <div class="word-status">${statusSelect(item)}</div>
   </article>`;
 }
+function renderDictionaryEntry(item) {
+  return `<article class="dictionary-entry">
+    <div class="dictionary-summary">
+      <div class="dictionary-chinese">
+        <div class="dictionary-word-line"><strong>${escapeHtml(item.word)}</strong>${speakButton(item.word,item.word)}</div>
+        <span class="dictionary-pinyin">${escapeHtml(item.pinyin)}</span>
+      </div>
+      <div class="dictionary-meaning">${escapeHtml(item.meaning)}</div>
+      <span class="dictionary-level">HSK ${item.level} · ${item.number}</span>
+    </div>
+    <details class="dictionary-details" data-example-id="${escapeHtml(item.id)}" ${state.openExamples.has(item.id) ? 'open' : ''}>
+      <summary><span>Xem ví dụ</span><span class="dictionary-chevron" aria-hidden="true">⌄</span></summary>
+      <div class="dictionary-example">
+        <div class="dictionary-example-cn">${escapeHtml(item.example)} ${speakButton(item.example,'câu ví dụ')}</div>
+        <div class="dictionary-example-pinyin">${escapeHtml(item.examplePinyin)}</div>
+        <div class="dictionary-example-vi">${escapeHtml(item.exampleVi)}</div>
+        ${item.sino ? `<div class="dictionary-extra-info">Hán Việt: ${escapeHtml(item.sino)}</div>` : ''}
+        ${item.english ? `<div class="dictionary-extra-info">Tiếng Anh: ${escapeHtml(item.english)}</div>` : ''}
+        ${item.definition ? `<div class="dictionary-extra-info">Giải thích: ${escapeHtml(item.definition)}</div>` : ''}
+        ${officialLabel(item)}
+        ${item.note ? `<div class="dictionary-extra-info">Ghi chú: ${escapeHtml(item.note)}</div>` : ''}
+      </div>
+    </details>
+  </article>`;
+}
 function renderBrowse() {
-  $('#resultText').textContent = 'Danh sách · ' + numberFormat(state.filtered.length) + ' từ';
-  $('#wordGrid').innerHTML = state.filtered.slice(0, state.visibleCount).map(renderWordCard).join('');
+  const dictionary = state.view === 'browse';
+  $('#resultText').textContent = (dictionary ? 'Danh sách từ · ' : 'Kết quả lọc · ') + numberFormat(state.filtered.length) + ' từ';
+  $('#wordGrid').classList.toggle('is-dictionary', dictionary);
+  $('#wordGrid').classList.toggle('is-filter', !dictionary);
+  $('#wordGrid').innerHTML = state.filtered.slice(0, state.visibleCount)
+    .map(dictionary ? renderDictionaryEntry : renderWordCard).join('');
   $('#loadMoreBtn').hidden = state.visibleCount >= state.filtered.length;
 }
 function toggleFavorite(id) {
@@ -407,6 +440,13 @@ function bindEvents() {
     if (speakEl) { event.stopPropagation(); speak(speakEl.dataset.speak); return; }
     const favEl = event.target.closest('[data-favorite]');
     if (favEl) { event.stopPropagation(); toggleFavorite(favEl.dataset.favorite); return; }
+    const exampleSummary = event.target.closest('.dictionary-details > summary');
+    if (exampleSummary) {
+      const id = exampleSummary.parentElement.dataset.exampleId;
+      if (state.openExamples.has(id)) state.openExamples.delete(id);
+      else state.openExamples.add(id);
+      return;
+    }
     const editionEl = event.target.closest('[data-edition]');
     if (editionEl) { setEdition(editionEl.dataset.edition); return; }
     const moduleEl = event.target.closest('[data-open-edition]');

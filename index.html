@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f8f5ec">
-  <meta name="description" content="Sanadala – học từ vựng tiếng Trung HSK 2.0 hoặc HSK 3.0 bằng thẻ ghi nhớ, tra cứu và bộ lọc, với phát âm, ví dụ và lưu tiến độ trên thiết bị.">
-  <title>Tiếng Trung · Sanadala</title>
+  <meta name="description" content="Sanadala – luyện tiếng Trung HSK 2.0 và HSK 3.0 với Flashcards, danh sách từ, bộ lọc, phát âm, ví dụ và lưu tiến độ trên thiết bị.">
+  <title>Luyện Tiếng Trung · Sanadala</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=4">
-  <script type="module" src="./app.js?v=4"></script>
+  <link rel="stylesheet" href="./styles.css?v=5">
+  <script type="module" src="./app.js?v=5"></script>
 </head>
 <body>
   <div class="site-shell">
@@ -19,12 +19,12 @@
       <div class="header-inner wrap">
         <button class="brand" data-view="home" aria-label="Về trang chủ Sanadala">
           <span class="brand-mark" aria-hidden="true">中</span>
-          <span class="brand-copy"><strong>sanadala<span class="brand-dot">.</span></strong><small>HỌC TIẾNG TRUNG</small></span>
+          <span class="brand-copy"><strong>sanadala<span class="brand-dot">.</span></strong><small>LUYỆN TIẾNG TRUNG</small></span>
         </button>
         <nav class="desktop-nav" aria-label="Điều hướng chính">
           <button class="nav-link active" data-view="home">Trang chủ</button>
-          <button class="nav-link" data-view="flash">Thẻ ghi nhớ</button>
-          <button class="nav-link" data-view="browse">Duyệt từ</button>
+          <button class="nav-link" data-view="flash">Flashcards</button>
+          <button class="nav-link" data-view="browse">Danh sách từ</button>
           <button class="nav-link" data-view="filter">Bộ lọc</button>
         </nav>
         <div class="header-right edition-toggle" role="group" aria-label="Chọn phiên bản HSK">
@@ -38,7 +38,7 @@
       <section id="homeView" class="home-view wrap">
         <div class="hero">
           <div class="hero-copy">
-            <span class="eyebrow"><span class="eyebrow-line"></span> GÓC HỌC TIẾNG TRUNG CỦA BẠN</span>
+            <span class="eyebrow"><span class="eyebrow-line"></span> GÓC LUYỆN TIẾNG TRUNG CỦA BẠN</span>
             <h1>Học từng từ.<br><em>Nhớ thật lâu.</em></h1>
             <p>Khám phá từ vựng <strong id="heroEditionLabel">HSK 3.0</strong> với phiên âm, nghĩa tiếng Việt và ví dụ thực tế. Chọn phiên bản HSK và học theo nhịp riêng của bạn.</p>
             <div class="hero-actions">
@@ -70,12 +70,12 @@
         <div class="learning-cards">
           <button class="learning-card" data-view="flash">
             <span class="learning-icon icon-orange" aria-hidden="true">▣</span><span class="card-tag">GHI NHỚ</span>
-            <strong>Thẻ ghi nhớ</strong><span>Lật thẻ, nghe phát âm và ôn lại những từ chưa thuộc.</span>
+            <strong>Flashcards</strong><span>Lật thẻ, nghe phát âm và ôn lại những từ chưa thuộc.</span>
             <span class="card-arrow" aria-hidden="true">↗</span>
           </button>
           <button class="learning-card" data-view="browse">
             <span class="learning-icon icon-green" aria-hidden="true">文</span><span class="card-tag">TRA CỨU</span>
-            <strong>Duyệt từ vựng</strong><span>Xem từ, pinyin, nghĩa và ví dụ theo từng cấp độ.</span>
+            <strong>Danh sách từ</strong><span>Tra nhanh như từ điển; mở ví dụ khi cần.</span>
             <span class="card-arrow" aria-hidden="true">↗</span>
           </button>
           <button class="learning-card" data-view="filter">
@@ -98,13 +98,13 @@
 
       <section id="studyView" class="study-view wrap" hidden>
         <div class="study-header">
-          <div><button class="text-back" data-view="home">← Trang chủ</button><span class="section-kicker" id="studyEditionLabel">HSK 3.0 · TỪ VỰNG</span><h1 id="studyTitle">Thẻ ghi nhớ</h1><p id="studySubtitle">Chạm vào thẻ để xem nghĩa.</p></div>
+          <div><button class="text-back" data-view="home">← Trang chủ</button><span class="section-kicker" id="studyEditionLabel">HSK 3.0 · TỪ VỰNG</span><h1 id="studyTitle">Flashcards</h1><p id="studySubtitle">Chạm vào thẻ để xem nghĩa.</p></div>
           <span class="study-counter" id="studyCounter" aria-live="polite">Đang tải…</span>
         </div>
 
         <div class="mode-tabs" role="navigation" aria-label="Chế độ học">
-          <button data-view="flash" class="mode-tab" aria-pressed="false"><span aria-hidden="true">▣</span> Thẻ ghi nhớ</button>
-          <button data-view="browse" class="mode-tab" aria-pressed="false"><span aria-hidden="true">☰</span> Duyệt từ</button>
+          <button data-view="flash" class="mode-tab" aria-pressed="false"><span aria-hidden="true">▣</span> Flashcards</button>
+          <button data-view="browse" class="mode-tab" aria-pressed="false"><span aria-hidden="true">☰</span> Danh sách từ</button>
           <button data-view="filter" class="mode-tab" aria-pressed="false"><span aria-hidden="true">⌕</span> Bộ lọc</button>
         </div>
 
@@ -164,13 +164,13 @@
           </div>
           <button class="copy-bank" id="copyBankBtn" title="Sao chép thông tin ngân hàng">Sao chép <span aria-hidden="true">⧉</span></button>
         </div>
-        <div class="footer-bottom"><span>© <span id="year"></span> Sanadala</span><span>Được tạo với niềm yêu thích tiếng Trung ♡</span></div>
+        <div class="footer-bottom"><span>© <span id="year"></span> Sanadala</span><a href="https://www.youtube.com/@luyentiengtrung" target="_blank" rel="noopener noreferrer">YouTube: Luyện Tiếng Trung ↗</a></div>
       </div>
     </footer>
     <nav class="mobile-nav" aria-label="Điều hướng điện thoại">
       <button data-view="home"><span aria-hidden="true">⌂</span>Trang chủ</button>
-      <button data-view="flash"><span aria-hidden="true">▣</span>Thẻ nhớ</button>
-      <button data-view="browse"><span aria-hidden="true">☰</span>Duyệt từ</button>
+      <button data-view="flash"><span aria-hidden="true">▣</span>Flashcards</button>
+      <button data-view="browse"><span aria-hidden="true">☰</span>Danh sách từ</button>
       <button data-view="filter"><span aria-hidden="true">⌕</span>Bộ lọc</button>
     </nav>
   </div>
