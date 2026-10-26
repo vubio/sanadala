@@ -213,6 +213,35 @@ function renderLevelChips() {
   $('#levelChips').innerHTML = state.catalog.map(item =>
     `<button class="level-chip ${state.levels.has(item.level) ? 'active' : ''}" data-level="${item.level}" aria-pressed="${state.levels.has(item.level)}" ${state.catalog.length === 1 ? 'disabled' : ''}>${escapeHtml(item.label || `HSK ${item.level}`)}</button>`
   ).join('');
+  renderFlashLevelChips();
+}
+function renderFlashLevelChips() {
+  const multipleLevels = state.catalog.length > 1;
+  $('#flashLevelSelector').hidden = !multipleLevels;
+  $('#flashCombinedLevelNote').hidden = multipleLevels;
+  if (!multipleLevels) return;
+  const allSelected = state.catalog.every(item => state.levels.has(item.level));
+  $('#flashAllLevelsBtn').classList.toggle('active', allSelected);
+  $('#flashAllLevelsBtn').setAttribute('aria-pressed', String(allSelected));
+  $('#flashLevelChips').innerHTML = state.catalog.map(item => {
+    const selected = !allSelected && state.levels.has(item.level);
+    return `<button type="button" class="flash-level-btn ${selected ? 'active' : ''}" data-flash-level="${item.level}" aria-pressed="${selected}">${escapeHtml(item.label || `HSK ${item.level}`)}</button>`;
+  }).join('');
+}
+function resetFlashRange() {
+  state.flashRangeStart = 1;
+  state.flashRangeEnd = null;
+}
+function selectFlashLevel(level) {
+  if (!state.catalog.some(item => item.level === level)) return;
+  const allSelected = state.catalog.every(item => state.levels.has(item.level));
+  if (allSelected) state.levels = new Set([level]);
+  else if (state.levels.has(level)) {
+    if (state.levels.size === 1) state.levels = new Set(state.catalog.map(item => item.level));
+    else state.levels.delete(level);
+  } else state.levels.add(level);
+  resetFlashRange();
+  refreshFilters();
 }
 function applyFilters() {
   const q = normalize(state.query);
@@ -287,6 +316,7 @@ function refreshFilters() { applyFilters(); renderCurrentView(); }
 function clearFilters() {
   state.levels = new Set(state.catalog.map(item => item.level));
   state.query = ''; state.onlyFavorites = false; state.statusFilter = 'all'; state.sort = 'original';
+  resetFlashRange();
   $('#searchInput').value = '';
   refreshFilters();
 }
@@ -521,11 +551,14 @@ function bindEvents() {
     if (moduleEl) { setEdition(moduleEl.dataset.openEdition).then(() => setView('browse')); return; }
     const viewEl = event.target.closest('[data-view]');
     if (viewEl) { setView(viewEl.dataset.view); return; }
+    const flashLevelEl = event.target.closest('[data-flash-level]');
+    if (flashLevelEl) { selectFlashLevel(Number(flashLevelEl.dataset.flashLevel)); return; }
     const levelEl = event.target.closest('[data-level]');
     if (levelEl) {
       const level = Number(levelEl.dataset.level);
       if (state.levels.has(level)) state.levels.delete(level);
       else state.levels.add(level);
+      resetFlashRange();
       refreshFilters(); return;
     }
   });
@@ -535,7 +568,8 @@ function bindEvents() {
   $('#searchInput').addEventListener('input', e => { state.query = e.target.value; refreshFilters(); });
   $('#statusFilter').addEventListener('change', e => { state.statusFilter = e.target.value; refreshFilters(); });
   $('#sortSelect').addEventListener('change', e => { state.sort = e.target.value; refreshFilters(); });
-  $('#allLevelsBtn').addEventListener('click', () => { state.levels = new Set(state.catalog.map(item=>item.level)); refreshFilters(); });
+  $('#allLevelsBtn').addEventListener('click', () => { state.levels = new Set(state.catalog.map(item=>item.level)); resetFlashRange(); refreshFilters(); });
+  $('#flashAllLevelsBtn').addEventListener('click', () => { state.levels = new Set(state.catalog.map(item=>item.level)); resetFlashRange(); refreshFilters(); });
   $('#favoritesOnlyBtn').addEventListener('click', () => { state.onlyFavorites = !state.onlyFavorites; refreshFilters(); });
   $('#shuffleBtn').addEventListener('click', () => {
     if (state.view === 'flash') {
